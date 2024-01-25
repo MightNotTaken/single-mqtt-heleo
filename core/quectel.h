@@ -34,6 +34,8 @@ namespace Quectel {
 
   };
 
+  bool logInHex = false;
+
   std::vector<String> responseList;
   String current;
   Core::Core_T* operationalCore;
@@ -103,6 +105,7 @@ namespace Quectel {
                       Quectel::sendCommand(url, "OK", [url](SerialResponse_T resp) {
                         Quectel::sendCommand("AT+QHTTPGET=60", "OK", [](SerialResponse_T resp) {
                           Quectel::sendCommand("AT+QHTTPREAD=30", "CONNECT", [](SerialResponse_T resp) {
+                            Quectel::logInHex = true;
                             Serial.println("dopne");
                           });
                         });
@@ -288,7 +291,15 @@ namespace Quectel {
             current += ch;
           }
         }
-        Serial.print(ch);
+        if (Quectel::logInHex) {
+          static int count = 0;
+          if (!count) {
+            Serial.println();
+          }
+          Serial.printf("%x ", (int)ch);
+          count ++;
+          count %= 16;
+        }
       }
     }, 100);
   }
