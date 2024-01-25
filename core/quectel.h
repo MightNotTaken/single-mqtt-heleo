@@ -101,7 +101,7 @@ namespace Quectel {
                   Quectel::sendCommand("AT+QIACT", "OK", [url](SerialResponse_T resp) {
                     Quectel::sendCommand(String("AT+QHTTPURL=") + String(url.length()) + ',' + 30, "CONNECT", [url](SerialResponse_T resp) {
                       Quectel::sendCommand(url, "OK", [url](SerialResponse_T resp) {
-                        Quectel::sendCommand("AT+HTTPGET=60", "OK", [](SerialResponse_T resp) {
+                        Quectel::sendCommand("AT+QHTTPGET=60", "OK", [](SerialResponse_T resp) {
                           Quectel::sendCommand("AT+QHTTPREAD=30", "OK", [](SerialResponse_T resp) {
                             Serial.println("dopne");
                           });
