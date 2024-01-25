@@ -146,6 +146,39 @@ namespace Quectel {
       MQTT::events.clear();
     }
     
+    void subscribeEvent(String event) {
+      Quectel::sendCommand(String("AT+QMTSUB=0,1,\"") + event + "\",1", "+QMTSUB: 0,1,0,1", [event](SerialResponse_T resp) {
+        Serial_println(String("subscribed to \"") + event + '"' + "successfully");
+      });
+    }
+
+    void unsubscribeEvent(String event, std::function<void()> callback) {
+      Quectel::sendCommand(String("AT+QMTUNS=0,1,\"") + event + "\"", "OK", [callback](SerialResponse_T resp) {
+        callback();
+      });
+    }
+    
+    void unsubscribe(String event, std::function<void()> callback) {
+      auto it = events.find(event);
+      if (it != events.end()) {
+        MQTT::events.erase(it);
+      } 
+      MQTT::unsubscribeEvent(event, callback);
+    }
+    
+    void on(String event, std::function<void(String)> callback) {
+      MQTT::events[event] = callback;
+      MQTT::subscribeEvent(event);
+    }
+
+    void publish(String event, String data, std::function<void()> callback) {
+      Quectel::sendCommand(String("AT+QMTPUB=0,1,1,0,\"") + event + "\"", ">", [callback, data](SerialResponse_T resp) { 
+        Quectel::sendCommand(data+"", "+QMTPUB: 0,1,0", [callback](SerialResponse_T resp) {
+          callback();
+        });
+      });
+    }
+
     void connect() {
       Quectel::errorCallback = []() {
         invoke(MQTT::errorCallback);
@@ -173,38 +206,7 @@ namespace Quectel {
       });
     }
 
-    void subscribeEvent(String event) {
-      Quectel::sendCommand(String("AT+QMTSUB=0,1,\"") + event + "\",1", "+QMTSUB: 0,1,0,1", [event](SerialResponse_T resp) {
-        Serial_println(String("subscribed to \"") + event + '"' + "successfully");
-      });
-    }
-
-    void unsubscribeEvent(String event, std::function<void()> callback) {
-      Quectel::sendCommand(String("AT+QMTUNS=0,1,\"") + event + "\"", "OK", [callback](SerialResponse_T resp) {
-        callback();
-      });
-    }
     
-    void unsubscribe(String event, std::function<void()> callback) {
-      auto it = events.find(event);
-      if (it != events.end()) {
-        MQTT::unsubscribeEvent(event, callback);
-        MQTT::events.erase(it);
-      }
-    }
-    
-    void on(String event, std::function<void(String)> callback) {
-      MQTT::events[event] = callback;
-      MQTT::subscribeEvent(event);
-    }
-
-    void publish(String event, String data, std::function<void()> callback) {
-      Quectel::sendCommand(String("AT+QMTPUB=0,1,1,0,\"") + event + "\"", ">", [callback, data](SerialResponse_T resp) { 
-        Quectel::sendCommand(data+"", "+QMTPUB: 0,1,0", [callback](SerialResponse_T resp) {
-          callback();
-        });
-      });
-    }
 
     void handleData(String data) {
       data = data.substring(data.indexOf(':') + 6);
