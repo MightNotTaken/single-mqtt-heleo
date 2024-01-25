@@ -114,10 +114,11 @@ namespace Quectel {
 
 
   void sendCommand(String command, String readUntil, Quectel::SerialCallback_T callback) {
+    if (!readUntil.length) {
+      readUntil = "OK";
+    }
     Quectel::serialCallback = callback;
-    Quectel::operationalCore->setTimeout([command, readUntil]() {
-      Quectel::sendCommand(command, readUntil);
-    }, 500);
+    Quectel::sendCommand(command, readUntil);
   }
 
 
