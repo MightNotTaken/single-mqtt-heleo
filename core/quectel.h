@@ -34,7 +34,7 @@ namespace Quectel {
 
   };
 
-  bool logInHex = false;
+  bool critical = false;
 
   std::vector<String> responseList;
   String current;
@@ -105,7 +105,7 @@ namespace Quectel {
                       Quectel::sendCommand(url, "OK", [url](SerialResponse_T resp) {
                         Quectel::sendCommand("AT+QHTTPGET=60", "OK", [](SerialResponse_T resp) {
                           Quectel::sendCommand("AT+QHTTPREAD=30", "CONNECT", [](SerialResponse_T resp) {
-                            Quectel::logInHex = true;
+                            Quectel::critical = true;
                             Serial.println("dopne");
                           });
                         });
@@ -257,7 +257,16 @@ namespace Quectel {
     looping = true;
     Quectel::operationalCore->setInterval([]() {
       while (Serial2.available()) {
-        char ch = Serial2.read();
+        if (Quectel::critical) {
+          char ch = Serial2.read();
+          static uint32_t bytesRead = 0;
+          bytesRead++;
+          if (byteRead % 1024 == 0) {
+            Serial.printf("%d kB\n", byteRead / 1024);
+          }
+          continue;
+        }
+        
         if (ch == '\n') {
           if (responseList.size() >= MAXIMUM_STRINGS) {
             responseList.erase(responseList.begin());
@@ -291,15 +300,7 @@ namespace Quectel {
             current += ch;
           }
         }
-        if (Quectel::logInHex) {
-          static int count = 0;
-          if (!count) {
-            Serial.println();
-          }
-          Serial.printf("%x ", (int)ch);
-          count ++;
-          count %= 16;
-        }
+        
       }
     }, 100);
   }
