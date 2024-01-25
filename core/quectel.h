@@ -102,7 +102,7 @@ namespace Quectel {
                     Quectel::sendCommand(String("AT+QHTTPURL=") + String(url.length()) + ',' + 30, "CONNECT", [url](SerialResponse_T resp) {
                       Quectel::sendCommand(url, "OK", [url](SerialResponse_T resp) {
                         Quectel::sendCommand("AT+QHTTPGET=60", "OK", [](SerialResponse_T resp) {
-                          Quectel::sendCommand("AT+QHTTPREAD=30", "OK", [](SerialResponse_T resp) {
+                          Quectel::sendCommand("AT+QHTTPREAD=30", "CONNECT", [](SerialResponse_T resp) {
                             Serial.println("dopne");
                           });
                         });
@@ -256,7 +256,6 @@ namespace Quectel {
       while (Serial2.available()) {
         char ch = Serial2.read();
         if (ch == '\n') {
-          Serial.println(current);
           if (responseList.size() >= MAXIMUM_STRINGS) {
             responseList.erase(responseList.begin());
           }
@@ -289,6 +288,7 @@ namespace Quectel {
             current += ch;
           }
         }
+        Serial.print(ch);
       }
     }, 100);
   }
