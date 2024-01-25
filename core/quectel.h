@@ -206,7 +206,7 @@ namespace Quectel {
       });
     }
 
-    
+
 
     void handleData(String data) {
       data = data.substring(data.indexOf(':') + 6);
@@ -235,6 +235,7 @@ namespace Quectel {
           if (!current.length()) {
             return;
           }
+          Serial.println(current);
           responseList.push_back(current);
           if (current.indexOf(Quectel::readUntil) > -1) {
             current = "";
