@@ -90,6 +90,34 @@ namespace Quectel {
     }, SECONDS(1));
   }
 
+  void httpGET(String url) {
+    Quectel::sendCommand("AT", "OK", [url](SerialResponse_T resp) {
+      Quectel::sendCommand("AT+CPIN?", "OK", [url](SerialResponse_T resp) {
+        Quectel::sendCommand("AT+CREG?", "OK", [url](SerialResponse_T resp) {
+          Quectel::sendCommand("AT+CGREG?", "OK", [url](SerialResponse_T resp) {
+            Quectel::sendCommand("AT+QIFGCNT=0", "OK", [url](SerialResponse_T resp) {
+              Quectel::sendCommand(String("AT+QICSGP=1,\"") + "airtelgprs.com" + '"' , "OK", [url](SerialResponse_T resp) {
+                Quectel::sendCommand("AT+QIREGAPP", "OK", [url](SerialResponse_T resp) {
+                  Quectel::sendCommand("AT+QIACT", "OK", [url](SerialResponse_T resp) {
+                    Quectel::sendCommand(String("AT+QHTTPURL=,") + String(url.length()) + ',' + 30, "CONNECT", [url](SerialResponse_T resp) {
+                      Quectel::sendCommand(url, "OK", [url](SerialResponse_T resp) {
+                        Quectel::sendCommand("AT+HTTPGET=60", "OK", [](SerialResponse_T resp) {
+                          Quectel::sendCommand("AT+QHTTPREAD=30", "OK", [](SerialResponse_T resp) {
+                            Serial.println("dopne");
+                          });
+                        });
+                      });
+                    });
+                  });
+                });
+              });
+            });
+          });
+        });
+      });
+    });
+  }
+
   void onReboot(std::function<void()> callback) {
     Quectel::rebootCallback = callback;
   }
@@ -114,7 +142,7 @@ namespace Quectel {
 
 
   void sendCommand(String command, String readUntil, Quectel::SerialCallback_T callback) {
-    if (!readUntil.length) {
+    if (!readUntil.length()) {
       readUntil = "OK";
     }
     Quectel::serialCallback = callback;
