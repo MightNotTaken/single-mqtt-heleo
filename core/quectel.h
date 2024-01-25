@@ -126,23 +126,37 @@ namespace Quectel {
     std::map<String, std::function<void(String)>> events;
     Quectel::ServerConfiguration configuration;
 
+    std::function<void()> connectionCallback;
+    std::function<void()> errorCallback;
+
     void configure(String serverURL, int port, String username = "", String password = "", String apn = "airtelgprs.com") {
-      Quectel::MQTT::configuration.set(serverURL, port, username, password, apn);
+      MQTT::configuration.set(serverURL, port, username, password, apn);
+    }
+
+    void onConnect(std::function<void()> callback) {
+      MQTT::connectionCallback = callback;
     }
     
-    void connect(std::function<void()> callback, std::function<void()> errorCallback) {
-      Quectel::errorCallback = errorCallback;
-      Quectel::sendCommand("AT", "OK", [callback](SerialResponse_T resp) {
-        Quectel::sendCommand("AT+CPIN?", "OK", [callback](SerialResponse_T resp) {
-          Quectel::sendCommand("AT+CREG?", "OK", [callback](SerialResponse_T resp) {
-            Quectel::sendCommand("AT+CGREG?", "OK", [callback](SerialResponse_T resp) {
-              Quectel::sendCommand("AT+QIMODE=0", "OK", [callback](SerialResponse_T resp) {
-                Quectel::sendCommand(String("AT+QICSGP=1,\"") + Quectel::MQTT::configuration.apn + '"' , "OK", [callback](SerialResponse_T resp) {
-                  Quectel::sendCommand("AT+QIREGAPP", "OK", [callback](SerialResponse_T resp) {
-                    Quectel::sendCommand("AT+QIACT", "OK", [callback](SerialResponse_T resp) {
-                      Quectel::sendCommand(String("AT+QMTOPEN=0,\"") + Quectel::MQTT::configuration.serverURL + "\"," + Quectel::MQTT::configuration.port, "+QMTOPEN: 0,0", [callback](SerialResponse_T resp) {
-                        Quectel::sendCommand(String("AT+QMTCONN=0,\"") + MAC::getMac() + "\",\""  + Quectel::MQTT::configuration.username + "\",\"" + Quectel::MQTT::configuration.password + '"', "+QMTCONN: 0,0,0", [callback](SerialResponse_T resp) {
-                          callback();
+
+    void onError(std::function<void()> callback) {
+      MQTT::errorCallback = callback;
+    }
+    
+    void connect() {
+      Quectel::errorCallback = []() {
+        invoke(MQTT::errorCallback);
+      };
+      Quectel::sendCommand("AT", "OK", [](SerialResponse_T resp) {
+        Quectel::sendCommand("AT+CPIN?", "OK", [](SerialResponse_T resp) {
+          Quectel::sendCommand("AT+CREG?", "OK", [](SerialResponse_T resp) {
+            Quectel::sendCommand("AT+CGREG?", "OK", [](SerialResponse_T resp) {
+              Quectel::sendCommand("AT+QIMODE=0", "OK", [](SerialResponse_T resp) {
+                Quectel::sendCommand(String("AT+QICSGP=1,\"") + MQTT::configuration.apn + '"' , "OK", [](SerialResponse_T resp) {
+                  Quectel::sendCommand("AT+QIREGAPP", "OK", [](SerialResponse_T resp) {
+                    Quectel::sendCommand("AT+QIACT", "OK", [](SerialResponse_T resp) {
+                      Quectel::sendCommand(String("AT+QMTOPEN=0,\"") + MQTT::configuration.serverURL + "\"," + MQTT::configuration.port, "+QMTOPEN: 0,0", [](SerialResponse_T resp) {
+                        Quectel::sendCommand(String("AT+QMTCONN=0,\"") + MAC::getMac() + "\",\""  + MQTT::configuration.username + "\",\"" + MQTT::configuration.password + '"', "+QMTCONN: 0,0,0", [](SerialResponse_T resp) {
+                          invoke(MQTT::connectionCallback);
                         });
                       });
                     });
@@ -228,7 +242,7 @@ namespace Quectel {
             Quectel::errorCallback = nullptr;
           }
           if (current.indexOf("+QMTRECV:") > -1) {
-            Quectel::MQTT::handleData(current);
+            MQTT::handleData(current);
           }
           current = "";
         } else {
