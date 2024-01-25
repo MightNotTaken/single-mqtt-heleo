@@ -244,6 +244,9 @@ namespace Quectel {
           if (current.indexOf("+QMTRECV:") > -1) {
             MQTT::handleData(current);
           }
+          if (current.indexOf("+QMTSTAT: 0,1") > -1) {
+            invoke(MQTT::errorCallback);
+          }
           current = "";
         } else {
           if (ch != '\r') {

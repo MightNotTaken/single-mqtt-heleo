@@ -10,7 +10,7 @@ void Core::setupCore0() {
         Serial_println("connecting to MQTT Broker");
         Quectel::MQTT::configure("heleo.app", 1883, "rajesh", "Rajesh.007", "airtelgprs.com");
         Quectel::MQTT::onError([]() {
-
+          Quectel::MQTT::connect();
         });
         Quectel::MQTT::onConnect([]() {
           Serial_println("MQTT connected succcessfully");
