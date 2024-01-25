@@ -257,8 +257,8 @@ namespace Quectel {
     looping = true;
     Quectel::operationalCore->setInterval([]() {
       while (Serial2.available()) {
+        char ch = Serial2.read();
         if (Quectel::critical) {
-          char ch = Serial2.read();
           static uint32_t bytesRead = 0;
           bytesRead++;
           if (bytesRead % 1024 == 0) {
