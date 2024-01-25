@@ -141,6 +141,10 @@ namespace Quectel {
     void onError(std::function<void()> callback) {
       MQTT::errorCallback = callback;
     }
+
+    void removeAllListeners() {
+      MQTT::events.clear();
+    }
     
     void connect() {
       Quectel::errorCallback = []() {
