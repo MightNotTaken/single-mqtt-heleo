@@ -261,7 +261,7 @@ namespace Quectel {
           char ch = Serial2.read();
           static uint32_t bytesRead = 0;
           bytesRead++;
-          if (byteRead % 1024 == 0) {
+          if (bytesRead % 1024 == 0) {
             Serial.printf("%d kB\n", bytesRead / 1024);
           }
           continue;
