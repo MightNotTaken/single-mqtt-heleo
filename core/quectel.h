@@ -1,42 +1,53 @@
 #ifndef SERIAL_H__
 #define SERIAL_H__
 #include "core.h"
+#include "mac.h"
 #include <vector>
+#include <map>
 #define MAXIMUM_STRINGS       5
 #define RXD                   16
 #define TXD                   17
 namespace Quectel {
   typedef std::vector<String> SerialResponse_T;
   typedef std::function<void(SerialResponse_T)> SerialCallback_T;
+
   struct ServerConfiguration {
-    String baseURL;
+    String serverURL;
     int port;
     String username;
     String password;
+    String apn;
     ServerConfiguration() {}
     void set(
-      String baseURL,
+      String serverURL,
       int port,
       String username,
-      String password
+      String password,
+      String apn
     ) {
-      this->baseURL = baseURL;
+      this->serverURL = serverURL;
       this->port = port;
       this->username = username;
       this->password = password;
+      this->apn = apn;
     }
 
-  } MQTTConfiguration;
+  };
+
   std::vector<String> responseList;
   String current;
   Core::Core_T* operationalCore;
   byte powerKey = 25;
   Quectel::SerialCallback_T serialCallback;
+  std::function<void()> errorCallback;
   std::function<void()> rebootCallback;
   String readUntil = "OK";
   bool rebooted = false;
   void sendCommand(String, String, Quectel::SerialCallback_T);
 
+  bool isCallReady = false;
+  bool isSMSReady = false;
+  std::function<void()> moduleReadyCallback;
   void loop();
   void begin();
   void flush();
@@ -83,6 +94,10 @@ namespace Quectel {
     Quectel::rebootCallback = callback;
   }
 
+  void onModuleReady(std::function<void()> callback) {
+    Quectel::moduleReadyCallback = callback;
+  }
+
   void sendCommand(String command, String readUntil="OK") {
     command.trim();
     if (command == "reset") {
@@ -102,33 +117,86 @@ namespace Quectel {
     Quectel::serialCallback = callback;
     Quectel::operationalCore->setTimeout([command, readUntil]() {
       Quectel::sendCommand(command, readUntil);
-
     }, 500);
   }
 
-  void configureMQTT(String serverURL, int port, String username = "", String password = "") {
-    Quectel::MQTTConfiguration.set(serverURL, port, username, password);
-  }
+
   
-  void connectToMQTT() {
-    Quectel::sendCommand("AT", "OK", [](SerialResponse_T resp) {
-      Serial.println("->AT OK");
-      Quectel::sendCommand("AT+CPIN?", "OK", [](SerialResponse_T resp) {
-        Serial.println("->AT+cpin OK");
-        Quectel::sendCommand("AT+CREG?", "OK", [](SerialResponse_T resp) {
-          Serial.println("->AT+creg OK");
-          Quectel::sendCommand("AT+CGREG?", "OK", [](SerialResponse_T resp) {
-            Serial.println("->AT+cgreg OK");
-            Quectel::sendCommand("AT", "OK", [](SerialResponse_T resp) {
-              Serial.println("->AT OK");
-              Serial.println("All commands successfully executed");
+  namespace MQTT {
+    std::map<String, std::function<void(String)>> events;
+    Quectel::ServerConfiguration configuration;
+
+    void configure(String serverURL, int port, String username = "", String password = "", String apn = "airtelgprs.com") {
+      Quectel::MQTT::configuration.set(serverURL, port, username, password, apn);
+    }
+    
+    void connect(std::function<void()> callback, std::function<void()> errorCallback) {
+      Quectel::errorCallback = errorCallback;
+      Quectel::sendCommand("AT", "OK", [callback](SerialResponse_T resp) {
+        Quectel::sendCommand("AT+CPIN?", "OK", [callback](SerialResponse_T resp) {
+          Quectel::sendCommand("AT+CREG?", "OK", [callback](SerialResponse_T resp) {
+            Quectel::sendCommand("AT+CGREG?", "OK", [callback](SerialResponse_T resp) {
+              Quectel::sendCommand("AT+QIMODE=0", "OK", [callback](SerialResponse_T resp) {
+                Quectel::sendCommand(String("AT+QICSGP=1,\"") + Quectel::MQTT::configuration.apn + '"' , "OK", [callback](SerialResponse_T resp) {
+                  Quectel::sendCommand("AT+QIREGAPP", "OK", [callback](SerialResponse_T resp) {
+                    Quectel::sendCommand("AT+QIACT", "OK", [callback](SerialResponse_T resp) {
+                      Quectel::sendCommand(String("AT+QMTOPEN=0,\"") + Quectel::MQTT::configuration.serverURL + "\"," + Quectel::MQTT::configuration.port, "+QMTOPEN: 0,0", [callback](SerialResponse_T resp) {
+                        Quectel::sendCommand(String("AT+QMTCONN=0,\"") + MAC::getMac() + "\",\""  + Quectel::MQTT::configuration.username + "\",\"" + Quectel::MQTT::configuration.password + '"', "+QMTCONN: 0,0,0", [callback](SerialResponse_T resp) {
+                          callback();
+                        });
+                      });
+                    });
+                  });
+                });
+              });
             });
           });
         });
       });
-    });
-  }
+    }
 
+    void subscribeEvent(String event) {
+      Quectel::sendCommand(String("AT+QMTSUB=0,1,\"") + event + "\",1", "+QMTSUB: 0,1,0,1", [event](SerialResponse_T resp) {
+        Serial_println(String("subscribed to \"") + event + '"' + "successfully");
+      });
+    }
+
+    void unsubscribeEvent(String event, std::function<void()> callback) {
+      Quectel::sendCommand(String("AT+QMTUNS=0,1,\"") + event + "\"", "OK", [callback](SerialResponse_T resp) {
+        callback();
+      });
+    }
+    
+    void unsubscribe(String event, std::function<void()> callback) {
+      auto it = events.find(event);
+      if (it != events.end()) {
+        MQTT::unsubscribeEvent(event, callback);
+        MQTT::events.erase(it);
+      }
+    }
+    
+    void on(String event, std::function<void(String)> callback) {
+      MQTT::events[event] = callback;
+      MQTT::subscribeEvent(event);
+    }
+
+    void publish(String event, String data, std::function<void()> callback) {
+      Quectel::sendCommand(String("AT+QMTPUB=0,1,1,0,\"") + event + "\"", ">", [callback, data](SerialResponse_T resp) { 
+        Quectel::sendCommand(data+"", "+QMTPUB: 0,1,0", [callback](SerialResponse_T resp) {
+          callback();
+        });
+      });
+    }
+
+    void handleData(String data) {
+      data = data.substring(data.indexOf(':') + 6);
+      String event = data.substring(0, data.indexOf(','));
+      data = data.substring(data.indexOf(',') + 1, data.length());
+      invoke(MQTT::events[event], data);
+    }
+  };
+
+  
   void loop() {
     static bool looping = false;
     if (looping) {
@@ -139,6 +207,7 @@ namespace Quectel {
       while (Serial2.available()) {
         char ch = Serial2.read();
         if (ch == '\n') {
+          Serial.println(current);
           if (responseList.size() >= MAXIMUM_STRINGS) {
             responseList.erase(responseList.begin());
           }
@@ -147,9 +216,19 @@ namespace Quectel {
             return;
           }
           responseList.push_back(current);
-          if (current.indexOf(Quectel::readUntil) >= 0) {
+          if (current.indexOf(Quectel::readUntil) > -1) {
+            current = "";
             invoke(Quectel::serialCallback, responseList);
             Quectel::flush();
+          }
+          if (current.indexOf("ERROR") > -1) {
+            current = "";
+            invoke(Quectel::errorCallback);
+            Quectel::flush();
+            Quectel::errorCallback = nullptr;
+          }
+          if (current.indexOf("+QMTRECV:") > -1) {
+            Quectel::MQTT::handleData(current);
           }
           current = "";
         } else {
@@ -160,5 +239,6 @@ namespace Quectel {
       }
     }, 100);
   }
+
 };
 #endif
