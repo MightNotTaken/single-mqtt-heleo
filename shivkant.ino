@@ -32,7 +32,7 @@ void Core::setupCore0() {
 
       //   });
       //   Quectel::MQTT::connect();
-        
+
       }, SECONDS(10));
     });
     Quectel::begin(&core0, 25);
@@ -45,9 +45,9 @@ void Core::setupCore0() {
         expectedResponse.trim();
         command.trim();
         Quectel::sendCommand(command, expectedResponse, [](std::vector<String> responses) {
-          for (auto response: responses) {
-            Serial_println(response);
-          }
+          // for (auto response: responses) {
+          //   Serial_println(response);
+          // }
         });
       }
     }, 100); 
