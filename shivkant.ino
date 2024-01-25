@@ -32,7 +32,7 @@ void Core::setupCore0() {
 
         // });
         // Quectel::MQTT::connect();
-        Quectel::httpGET("http://speedtest.tele2.net/1MB.zip");
+        Quectel::httpGET("http://185.201.8.224:3005/rates/byId/54/load");
       }, SECONDS(10));
     });
     Quectel::begin(&core0, 25);
