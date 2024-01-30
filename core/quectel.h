@@ -180,8 +180,8 @@ namespace Quectel {
       MQTT::events.clear();
     }
     
-    void subscribeEvent(String event, String event, std::function<void()> callback) {
-      Quectel::sendCommand(String("AT+QMTSUB=0,1,\"") + event + "\",1", "+QMTSUB: 0,1,0,1", [event](SerialResponse_T resp) {
+    void subscribeEvent(String event, std::function<void()> callback) {
+      Quectel::sendCommand(String("AT+QMTSUB=0,1,\"") + event + "\",1", "+QMTSUB: 0,1,0,1", [event, callback](SerialResponse_T resp) {
         Serial_println(String("subscribed to \"") + event + '"' + "successfully");
         invoke(callback);
       });
