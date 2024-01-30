@@ -201,7 +201,7 @@ namespace Quectel {
       MQTT::unsubscribeEvent(event, callback);
     }
     
-    void on(String event, std::function<void(String)> callback, std::function<void(String)> onSuccess = nullptr) {
+    void on(String event, std::function<void(String)> callback, std::function<void()> onSuccess = nullptr) {
       MQTT::events[event] = callback;
       MQTT::subscribeEvent(event, onSuccess);
     }
