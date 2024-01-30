@@ -226,6 +226,7 @@ namespace Quectel {
                     Quectel::sendCommand("AT+QIACT", "OK", [](SerialResponse_T resp) {
                       Quectel::sendCommand(String("AT+QMTOPEN=0,\"") + MQTT::configuration.serverURL + "\"," + MQTT::configuration.port, "+QMTOPEN: 0,0", [](SerialResponse_T resp) {
                         Quectel::sendCommand(String("AT+QMTCONN=0,\"") + MAC::getMac() + "\",\""  + MQTT::configuration.username + "\",\"" + MQTT::configuration.password + '"', "+QMTCONN: 0,0,0", [](SerialResponse_T resp) {
+                          Quectel::errorCallback = nullptr;
                           invoke(MQTT::connectionCallback);
                         });
                       });

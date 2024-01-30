@@ -25,7 +25,7 @@ void Core::setupCore0() {
           Device::listen();
           Core::core0.setTimeout([]() {
             Device::reRegister();
-          }, SECONDS(2));
+          }, SECONDS(5));
         });
         Quectel::MQTT::connect();
       }, SECONDS(2)); 

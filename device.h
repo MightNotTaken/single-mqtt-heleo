@@ -15,7 +15,7 @@ namespace Device {
   }
   
   void updateConfiguration() {
-    Serial.println("updating configuration");
+    Serial_println("updating configuration");
     String config = Configuration::toJSON();
     JSON::add(config, "mac", MAC::getMac());
     JSON::add(config, "type", "config");
