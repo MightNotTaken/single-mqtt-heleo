@@ -14,12 +14,14 @@ void Core::setupCore0() {
         });
         Quectel::MQTT::onConnect([]() {
           Serial_println("MQTT connected succcessfully");
-          Quectel::MQTT::on("myevent", [](String data) {
+          Quectel::MQTT::on(MAC::getMac(), [](String data) {
             Serial_println(data + " received from myevent");
+          });
+          Quectel::MQTT::publish("register", MAC::getMac(), []() {
+            Serial_println("Device register called");
           });
         });
         Quectel::MQTT::connect();
-
       }, SECONDS(10));
     });
     Quectel::begin(&core0, 25);

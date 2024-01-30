@@ -80,7 +80,7 @@ namespace Quectel {
     delay(1000);
     digitalWrite(powerKey, LOW);
     delay(500);
-    Quectel::sendCommand("AT", "OK", [](SerialResponse_T response) {
+    Quectel::sendCommand("AT", "Call", [](SerialResponse_T response) {
       Quectel::rebooted = true;
       invoke(Quectel::rebootCallback);
     });
@@ -89,7 +89,7 @@ namespace Quectel {
         return;
       }
       Quectel::reboot();
-    }, SECONDS(1));
+    }, SECONDS(5));
   }
 
   void httpGET(String url) {
@@ -203,10 +203,10 @@ namespace Quectel {
       MQTT::subscribeEvent(event);
     }
 
-    void publish(String event, String data, std::function<void()> callback) {
+    void publish(String event, String data, std::function<void()> callback = nullptr) {
       Quectel::sendCommand(String("AT+QMTPUB=0,1,1,0,\"") + event + "\"", ">", [callback, data](SerialResponse_T resp) { 
         Quectel::sendCommand(data+"", "+QMTPUB: 0,1,0", [callback](SerialResponse_T resp) {
-          callback();
+          invoke(callback);
         });
       });
     }
