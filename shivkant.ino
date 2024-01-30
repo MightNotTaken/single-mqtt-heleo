@@ -1,6 +1,6 @@
 #include "core/core.h"
 #include "core/quectel.h" 
-
+#include "device.h"
 void Core::setupCore0() {
   Core::core0.onSetup([]() {
     Serial.begin(115200);
@@ -8,23 +8,29 @@ void Core::setupCore0() {
       Serial.println("rebooted");
       Core::core0.setTimeout([]() {
         Serial_println("connecting to MQTT Broker");
-        Quectel::MQTT::configure("heleo.app", 1883, "rajesh", "Rajesh.007", "airtelgprs.com");
+        Quectel::MQTT::configure(
+          Configuration::MQTT::baseURL,
+          Configuration::MQTT::port,
+          Configuration::MQTT::username,
+          Configuration::MQTT::password,
+          Configuration::MQTT::apn
+        );
         Quectel::MQTT::onError([]() {
-          Quectel::begin(&core0, 25);
+          Quectel::begin(&core0, Configuration::Quectel::powerKey);
         });
         Quectel::MQTT::onConnect([]() {
           Serial_println("MQTT connected succcessfully");
-          Quectel::MQTT::on(MAC::getMac(), [](String data) {
-            Serial_println(data + " received from myevent");
-          });
-          Quectel::MQTT::publish("register", MAC::getMac(), []() {
-            Serial_println("Device register called");
-          });
+          
+          Device::updateConfiguration();
+          Device::listen();
+          Core::core0.setTimeout([]() {
+            Device::reRegister();
+          }, SECONDS(2));
         });
         Quectel::MQTT::connect();
       }, SECONDS(2)); 
     });
-    Quectel::begin(&core0, 25);
+    Quectel::begin(&core0, Configuration::Quectel::powerKey);
     Core::core0.setInterval([]() {
       if (Serial.available()) {
         String command = Serial.readString();
