@@ -80,7 +80,7 @@ namespace Quectel {
     delay(1000);
     digitalWrite(powerKey, LOW);
     delay(500);
-    Quectel::sendCommand("AT", "Call", [](SerialResponse_T response) {
+    Quectel::sendCommand("AT", "Call Ready", [](SerialResponse_T response) {
       Quectel::rebooted = true;
       invoke(Quectel::rebootCallback);
     });
