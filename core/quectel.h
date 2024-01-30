@@ -263,7 +263,6 @@ namespace Quectel {
         if (current.indexOf(Quectel::readUntil) > -1) {
           current = "";
           invoke(Quectel::serialCallback, responseList);
-          Quectel::flush();
         }
         if (ch == '\n') {
           if (responseList.size() >= MAXIMUM_STRINGS) {
