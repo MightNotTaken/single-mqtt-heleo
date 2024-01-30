@@ -238,8 +238,6 @@ namespace Quectel {
       });
     }
 
-
-
     void handleData(String data) {
       data = data.substring(data.indexOf(':') + 6);
       String event = data.substring(0, data.indexOf(','));
