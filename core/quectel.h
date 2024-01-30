@@ -266,7 +266,7 @@ namespace Quectel {
           }
           continue;
         }
-        
+        Serial.print(ch);
         if (ch == '\n') {
           if (responseList.size() >= MAXIMUM_STRINGS) {
             responseList.erase(responseList.begin());
@@ -275,7 +275,6 @@ namespace Quectel {
           if (!current.length()) {
             return;
           }
-          showX(current);
           responseList.push_back(current);
           if (current.indexOf(Quectel::readUntil) > -1) {
             current = "";
