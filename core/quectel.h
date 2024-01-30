@@ -141,7 +141,6 @@ namespace Quectel {
     Serial2.print(command);
     Serial2.write('\r');
     Serial2.write('\n');
-    showX(command);
   }
 
 
