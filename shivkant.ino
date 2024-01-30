@@ -16,7 +16,7 @@ void Core::setupCore0() {
           Configuration::MQTT::apn
         );
         Quectel::MQTT::onError([]() {
-          Quectel::begin(&core0, Configuration::Quectel::powerKey);
+          Quectel::MQTT::connect();
         });
         Quectel::MQTT::onConnect([]() {
           Serial_println("MQTT connected succcessfully");

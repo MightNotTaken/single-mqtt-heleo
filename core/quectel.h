@@ -10,7 +10,7 @@
 namespace Quectel {
   typedef std::vector<String> SerialResponse_T;
   typedef std::function<void(SerialResponse_T)> SerialCallback_T;
-
+  TimeoutReference rebootTimeout;
   struct ServerConfiguration {
     String serverURL;
     int port;
@@ -82,6 +82,7 @@ namespace Quectel {
     delay(500);
     Quectel::sendCommand("AT", "Call Ready", [](SerialResponse_T response) {
       Quectel::rebooted = true;
+      Quectel::operationalCore->clearTimeout(Quectel::rebootTimeout);
       invoke(Quectel::rebootCallback);
     });
     Quectel::operationalCore->setTimeout([]() {
@@ -89,7 +90,7 @@ namespace Quectel {
         return;
       }
       Quectel::reboot();
-    }, SECONDS(5));
+    }, SECONDS(10));
   }
 
   void httpGET(String url) {
