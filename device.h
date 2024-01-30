@@ -14,7 +14,7 @@ namespace Device {
     JSON::add(command, "type", "firmware_request");
     JSON::add(command, "installed_firmware", FIRMWARE_VERSION);
     JSON::add(command, "mac", MAC::getMac());
-    Quectel::MQTT::publish(MAC::getMac(), command);
+    Quectel::MQTT::publish(MAC::getMac() + "-dev", command);
   }
   
   void updateConfiguration(std::function<void()> callbac) {
@@ -24,7 +24,7 @@ namespace Device {
     JSON::add(config, "type", "config");
     JSON::add(config, "installed_firmware", FIRMWARE_VERSION);
     JSON::prettify(config);
-    Quectel::MQTT::publish(MAC::getMac(), config, callbac);
+    Quectel::MQTT::publish(MAC::getMac() + "-dev", config, callbac);
   }
 
   void reRegister(std::function<void()> callbac) {
