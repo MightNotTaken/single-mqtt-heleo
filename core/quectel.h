@@ -262,7 +262,7 @@ namespace Quectel {
     Quectel::operationalCore->setInterval([]() {
       while (Serial2.available()) {
         char ch = Serial2.read();
-        Serial.print(ch);
+        // Serial.print(ch);
         if (current.indexOf(Quectel::readUntil) > -1) {
           current = "";
           invoke(Quectel::serialCallback, responseList);
