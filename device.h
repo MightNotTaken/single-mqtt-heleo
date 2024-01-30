@@ -7,6 +7,8 @@
 #include  <functional>
 
 namespace Device {
+  bool listening = false;
+  std::function<void(String)> dataCallbac;
   void sendFirmwareRequest() {
     String command = JSON::JSON();
     JSON::add(command, "type", "firmware_request");
@@ -29,10 +31,18 @@ namespace Device {
     Quectel::MQTT::publish("register", MAC::getMac(), callbac);
   }
 
-  void listen() {
-    Quectel::MQTT::on(MAC::getMac(), [](String response) {
-      Serial_println("Device listening");
-      Serial_println(response);
+  void onData(std::function<void(String)> callbac) {
+    Device::dataCallbac = callbac;
+  }
+
+  void listen(std::function<void()> callbac) {
+    Device::listening = false;
+    Quectel::MQTT::on(MAC::getMac(), [callbac](String deviceData) {
+      if (!Device::listening) {
+        Device::listening = true;
+        invoke(callbac);
+      }
+      invoke(Device::dataCallbac, deviceData);
     });
   }
 };

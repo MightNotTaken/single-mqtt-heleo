@@ -20,13 +20,19 @@ void Core::setupCore0() {
         });
         Quectel::MQTT::onConnect([]() {
           Serial_println("MQTT connected succcessfully");
-          Device::reRegister([]() {
-            Serial_println("device registered");
-            Device::updateConfiguration([]() {
-              Serial_println("configuration updated succcessfully");
-              Device::listen();
+          Device::onData([](String deviceData) {
+            showX(deviceData);
+          });
+          Device::listen([]() {
+            Serial_println("Device listening");
+            Device::reRegister([]() {
+              Serial_println("device registered");
+              Device::updateConfiguration([]() {
+                Serial_println("configuration updated succcessfully");
+              });
             });
           });
+          
         });
         Quectel::MQTT::connect();
       }, SECONDS(5)); 
