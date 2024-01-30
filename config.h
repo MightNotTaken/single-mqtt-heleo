@@ -14,11 +14,13 @@ namespace Configuration {
     int powerKey = 25;
   };
 
+  int relays =  6;
+  int dimmers = 1;
   
   String toJSON() {
     String json = JSON::JSON();
-    JSON::add(json, "relays", 1, true);
-    JSON::add(json, "dimmer", 0, true);
+    JSON::add(json, "relays", relays, true);
+    JSON::add(json, "dimmer", dimmers, true);
     JSON::add(json, "installed_firmware", FIRMWARE_VERSION);
     return json;
   }

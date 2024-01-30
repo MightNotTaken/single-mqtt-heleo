@@ -1,6 +1,7 @@
 #include "core/core.h"
-#include "core/quectel.h" 
+#include "core/quectel.h"
 #include "device.h"
+
 void Core::setupCore0() {
   Core::core0.onSetup([]() {
     Serial.begin(115200);
@@ -20,8 +21,13 @@ void Core::setupCore0() {
         });
         Quectel::MQTT::onConnect([]() {
           Serial_println("MQTT connected succcessfully");
-          Device::onUpdate([](byte status) {
-            showX(status);
+          Device::onRelayUpdate([](uint8_t relay, uint8_t state) {
+            showX(relay);
+            showX(state);
+          });
+          Device::onFanUpdate([](uint8_t fan, uint8_t state) {
+            showX(fan);
+            showX(state);
           });
           Device::listen([]() {
             Serial_println("Device listening");
