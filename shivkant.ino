@@ -20,10 +20,10 @@ void Core::setupCore0() {
         });
         Quectel::MQTT::onConnect([]() {
           Serial_println("MQTT connected succcessfully");
-          Device::updateConfiguration([]() {
-            Serial_println("configuration updated succcessfully");
-            Device::reRegister([]() {
-              Serial_println("device registered");
+          Device::reRegister([]() {
+            Serial_println("device registered");
+            Device::updateConfiguration([]() {
+              Serial_println("configuration updated succcessfully");
               Device::listen();
             });
           });
