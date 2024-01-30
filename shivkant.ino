@@ -22,7 +22,7 @@ void Core::setupCore0() {
           });
         });
         Quectel::MQTT::connect();
-      }, SECONDS(10));
+      }, SECONDS(2)); 
     });
     Quectel::begin(&core0, 25);
     Core::core0.setInterval([]() {
