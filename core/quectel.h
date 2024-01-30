@@ -207,7 +207,7 @@ namespace Quectel {
 
     void publish(String event, String data, std::function<void()> callback = nullptr) {
       Quectel::sendCommand(String("AT+QMTPUB=0,1,1,0,\"") + event + "\"", ">", [callback, data](SerialResponse_T resp) { 
-        Quectel::sendCommand(data+"", "+QMTPUB: 0,1,0", [callback](SerialResponse_T resp) {
+        Quectel::sendCommand(data+"", "+QMTPUB: 0,1,0", [callback](SerialResponse_T resp) {
           invoke(callback);
         });
       });
@@ -259,15 +259,12 @@ namespace Quectel {
     Quectel::operationalCore->setInterval([]() {
       while (Serial2.available()) {
         char ch = Serial2.read();
-        if (Quectel::critical) {
-          static uint32_t bytesRead = 0;
-          bytesRead++;
-          if (bytesRead % 1024 == 0) {
-            Serial.printf("%d kB\n", bytesRead / 1024);
-          }
-          continue;
-        }
         Serial.print(ch);
+        if (current.indexOf(Quectel::readUntil) > -1) {
+          current = "";
+          invoke(Quectel::serialCallback, responseList);
+          Quectel::flush();
+        }
         if (ch == '\n') {
           if (responseList.size() >= MAXIMUM_STRINGS) {
             responseList.erase(responseList.begin());
@@ -277,11 +274,7 @@ namespace Quectel {
             return;
           }
           responseList.push_back(current);
-          if (current.indexOf(Quectel::readUntil) > -1) {
-            current = "";
-            invoke(Quectel::serialCallback, responseList);
-            Quectel::flush();
-          }
+          
           if (current.indexOf("ERROR") > -1) {
             current = "";
             invoke(Quectel::errorCallback);
