@@ -22,8 +22,7 @@ namespace Device {
     JSON::add(config, "type", "config");
     JSON::add(config, "installed_firmware", FIRMWARE_VERSION);
     JSON::prettify(config);
-    invoke(callbac);
-    // Quectel::MQTT::publish(MAC::getMac(), config, callbac);
+    Quectel::MQTT::publish(MAC::getMac(), config, callbac);
   }
 
   void reRegister(std::function<void()> callbac) {
