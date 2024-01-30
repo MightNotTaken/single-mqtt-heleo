@@ -208,7 +208,9 @@ namespace Quectel {
     void publish(String event, String data, std::function<void()> callback = nullptr) {
       Quectel::sendCommand(String("AT+QMTPUB=0,1,1,0,\"") + event + "\"", ">", [callback, data](SerialResponse_T resp) { 
         Quectel::sendCommand(data+"", "+QMTPUB: 0,1,0", [callback](SerialResponse_T resp) {
-          invoke(callback);
+          Quectel::operationalCore->setTimeout([]() {
+            invoke(callback);
+          }, SECONDS(.5));
         });
       });
     }
