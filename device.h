@@ -37,15 +37,7 @@ namespace Device {
 
   void listen(std::function<void()> callbac) {
     Device::listening = false;
-    Quectel::MQTT::on(MAC::getMac(), [callbac](String deviceData) {
-      Serial_println("started listening successfully");
-      showX(Device::listening);
-      if (!Device::listening) {
-        Device::listening = true;
-        invoke(callbac);
-      }
-      invoke(Device::dataCallbac, deviceData);
-    });
+    Quectel::MQTT::on(MAC::getMac(), Device::dataCallbac, callbac);
   }
 };
 #endif
