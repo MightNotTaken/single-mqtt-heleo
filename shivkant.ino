@@ -25,9 +25,7 @@ void Core::setupCore0() {
             Serial_println("configuration updated succcessfully");
             Device::reRegister([]() {
               Serial_println("device registered");
-              Device::listen([]() {
-                Serial_println("Device listening");
-              });
+              Device::listen();
             });
           });
         });

@@ -26,11 +26,14 @@ namespace Device {
   }
 
   void reRegister(std::function<void()> callbac) {
-    Quectel::MQTT::publish("register", MAC::getMac(), callbac});
+    Quectel::MQTT::publish("register", MAC::getMac(), callbac);
   }
 
-  void listen(std::function<void()> callbac) {
-    Quectel::MQTT::on(MAC::getMac(), callbac);
+  void listen() {
+    Quectel::MQTT::on(MAC::getMac(), [](String response) {
+      Serial_println("Device listening");
+      Serial_println(response);
+    });
   }
 };
 #endif
