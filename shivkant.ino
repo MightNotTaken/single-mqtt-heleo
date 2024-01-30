@@ -28,7 +28,7 @@ void Core::setupCore0() {
           }, SECONDS(5));
         });
         Quectel::MQTT::connect();
-      }, SECONDS(2)); 
+      }, SECONDS(10)); 
     });
     Quectel::begin(&core0, Configuration::Quectel::powerKey);
     Core::core0.setInterval([]() {
