@@ -23,13 +23,12 @@ void Core::setupCore0() {
           Core::core0.setTimeout([]() {
             // Device::updateConfiguration([]() {
             //   Serial_println("configuration updated succcessfully");
-            //   Device::reRegister([]() {
-            //     Serial_println("device registered");
-            //     Device::listen();
-            //   });
+              Device::reRegister([]() {
+                Serial_println("device registered");
+                Device::listen();
+              });
             // });
-            Device::listen();
-          }, SECONDS(3));
+          }, SECONDS(1));
         });
         Quectel::MQTT::connect();
       }, SECONDS(5)); 

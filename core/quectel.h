@@ -136,6 +136,7 @@ namespace Quectel {
       ESP.restart();
       return;
     }
+    delay(250);
     Quectel::flush();
     Quectel::readUntil = readUntil;
     Serial2.print(command);
