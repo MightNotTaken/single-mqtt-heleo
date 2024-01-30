@@ -282,7 +282,6 @@ namespace Quectel {
             Quectel::errorCallback = nullptr;
           }
           if (current.indexOf("+QMTRECV:") > -1) {
-            Serial_println("data received");
             MQTT::handleData(current);
           }
           if (current.indexOf("+QMTSTAT: 0,1") > -1) {
