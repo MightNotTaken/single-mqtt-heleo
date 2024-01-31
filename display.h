@@ -44,8 +44,8 @@ namespace Display {
   
   void begin(Core::Core_T* core) {
     Display::core = core;
-    lcd.init();
-    lcd.backlight();
+    Display::lcd.begin();
+    Display::lcd.backlight();
     Display::showSplash();   
   }
 
