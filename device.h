@@ -122,4 +122,5 @@ namespace Device {
     }
   }
 };
+
 #endif
