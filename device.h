@@ -7,6 +7,7 @@
 #include "core/mac.h"
 #include "core/database.h"
 #include  <functional>
+#include  <map>
 
 namespace Device {
   bool listening = false;
@@ -14,6 +15,9 @@ namespace Device {
   std::function<void(uint8_t, uint8_t)> fanUpdateCallback;
   String stateString = JSON::JSON();
   Core::Core_T* core;
+
+  std::vector<byte> relays;
+  
   void sendFirmwareRequest() {
     String command = JSON::JSON();
     JSON::add(command, "type", "firmware_request");
@@ -67,12 +71,12 @@ namespace Device {
     String type = JSON::read(data, "type");
     if (type == "update") {
       Device::flushStateString();
-      for (int i=0; i<Configuration::relays; i++) {
+      for (int i=0; i<Configuration::Peripherals::relays; i++) {
         int state = JSON::read(data, String("r") + i).toInt();
         invoke(relayUpdateCallback, i, state);
         Device::updateStateString(String("r") + i, state);
       }
-      for (int i=0; i<Configuration::dimmers; i++) {
+      for (int i=0; i<Configuration::Peripherals::dimmers; i++) {
         int state = JSON::read(data, String("d") + i).toInt();
         invoke(fanUpdateCallback, i, state);
         Device::updateStateString(String("d") + i, state);
@@ -95,6 +99,17 @@ namespace Device {
 
   void begin(Core::Core_T* core) {
     Device::core = core;
+    for (auto gpio: Configuration::Peripherals::GPIO::relays) {
+      showX(gpio);
+      Device::relays.push_back(gpio);
+    }
+    if (Database::readFile("/state.json")) {
+      Device::stateString = Database::payload();
+      for (int i=0; i<Configuration::Peripherals::relays; i++) {
+        int state = JSON::read(Device::stateString, String("r") + i).toInt();
+        invoke(relayUpdateCallback, i, state);
+      }
+    }
   }
 };
 #endif

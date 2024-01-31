@@ -14,13 +14,22 @@ namespace Configuration {
     int powerKey = 25;
   };
 
-  int relays =  6;
-  int dimmers = 1;
-  
+  namespace Peripherals {
+    int relays =  1;
+    int dimmers = 0;
+
+    namespace GPIO {
+      int relays[] = {23};
+      int dimmers[][2] = {};
+    };
+  };
+
+
+
   String toJSON() {
     String json = JSON::JSON();
-    JSON::add(json, "relays", relays, true);
-    JSON::add(json, "dimmer", dimmers, true);
+    JSON::add(json, "relays", Peripherals::relays, true);
+    JSON::add(json, "dimmer", Peripherals::dimmers, true);
     JSON::add(json, "installed_firmware", FIRMWARE_VERSION);
     return json;
   }
