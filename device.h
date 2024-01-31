@@ -25,6 +25,7 @@ namespace Device {
   void updateConfiguration(std::function<void()> callback) {
     Serial_println("updating configuration");
     String config = Configuration::toJSON();
+    JSON::add(config, "mac", MAC::getMac());
     JSON::add(config, "type", "config");
     JSON::add(config, "installed_firmware", FIRMWARE_VERSION);
     JSON::prettify(config);
@@ -43,10 +44,7 @@ namespace Device {
   }
 
   template<typename T>
-  void updateStateString(String key, T value, bool overwrite = false) {
-    if (overwrite) {
-      Device::stateString = JSON::JSON();
-    }
+  void updateStateString(String key, T valuee) {
     JSON::add(Device::stateString, key, String(value));
   }
 
@@ -61,10 +59,14 @@ namespace Device {
     });
   }
 
+  void flushStateString() {
+    Device::stateString = JSON::JSON();
+  }
+
   void onData(String data) {
     String type = JSON::read(data, "type");
     if (type == "update") {
-      Device::updateStateString("mac", MAC::getMac(), true);
+      Device::flushStateString();
       for (int i=0; i<Configuration::relays; i++) {
         int state = JSON::read(data, String("r") + i).toInt();
         invoke(relayUpdateCallback, i, state);
