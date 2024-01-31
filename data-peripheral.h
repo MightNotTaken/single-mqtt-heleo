@@ -53,7 +53,7 @@ namespace DataPeripheral {
         char ch = (char)DataPeripheral::serial.read();
         if (ch == '\n') {
           DataPeripheral::parser.parse();
-          invoke(DataPeripheral::dataCallback);
+          invoke(DataPeripheral::dataCallback, DataPeripheral::parser);
         } else {
           DataPeripheral::parser.add(ch);
         }
