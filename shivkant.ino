@@ -2,16 +2,18 @@
 #include "core/quectel.h"
 #include "device.h"
 #include "data-peripheral.h"
+#include "display.h"
 
 void Core::setupCore0() {
   Core::core0.onSetup([]() {
     Serial.begin(115200);
     DataPeripheral::begin(&Core::core0);
     Device::begin(&Core::core0);
+    Display::begin(&Core::core0);
+    
     DataPeripheral::onData([](DataPeripheral::Data data) {
       data.show();
     });
-    return;
     Quectel::onReboot([]() {
       Serial.println("rebooted");
       Core::core0.setTimeout([]() {
