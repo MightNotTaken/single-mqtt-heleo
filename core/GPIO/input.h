@@ -9,7 +9,7 @@ class InputGPIO {
   std::function<void(bool)> stateChangeCallback;
   bool lastState;
   public:
-    InputGPIO(uint8_t GPIO, uint8_t mode = INPUT): GPIO(GPIO) {
+    InputGPIO(uint8_t GPIO, uint8_t mode = INPUT_PULLUP): GPIO(GPIO) {
       pinMode(GPIO, mode);
       this->lastState = digitalRead(GPIO);
       this->GPIO = GPIO;
