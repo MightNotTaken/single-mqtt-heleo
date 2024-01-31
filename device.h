@@ -44,7 +44,7 @@ namespace Device {
   }
 
   template<typename T>
-  void updateStateString(String key, T valuee) {
+  void updateStateString(String key, T value) {
     JSON::add(Device::stateString, key, String(value));
   }
 
