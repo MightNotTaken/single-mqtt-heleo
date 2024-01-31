@@ -5,6 +5,7 @@
 void Core::setupCore0() {
   Core::core0.onSetup([]() {
     Serial.begin(115200);
+    Device::begin(&Core::core0);
     Quectel::onReboot([]() {
       Serial.println("rebooted");
       Core::core0.setTimeout([]() {

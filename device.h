@@ -2,6 +2,7 @@
 #define DEVICE_H__
 #include "core/quectel.h"
 #include "core/JSON.h"
+#include "core/core.h"
 #include "config.h"
 #include "core/mac.h"
 #include "core/database.h"
@@ -12,6 +13,7 @@ namespace Device {
   std::function<void(uint8_t, uint8_t)> relayUpdateCallback;
   std::function<void(uint8_t, uint8_t)> fanUpdateCallback;
   String stateString = JSON::JSON();
+  Core::Core_T* core;
   void sendFirmwareRequest() {
     String command = JSON::JSON();
     JSON::add(command, "type", "firmware_request");
@@ -73,7 +75,9 @@ namespace Device {
         Device::updateStateString(String("d") + i, state);
       }
       Device::updateStateString("device", JSON::read(data, "device"));
-      Device::publishStateString();
+      Device::core->setTimeout([]() {
+        Device::publishStateString();
+      }, SECONDS(1));
     } else if (type == "restart") {
       ESP.restart();
     } else if (type == "update_firmware") {
@@ -88,8 +92,8 @@ namespace Device {
     Quectel::MQTT::on(MAC::getMac(), Device::onData, callback);
   }
 
-  void begin() {
-
+  void begin(Core::Core_T* core) {
+    Device::core = core;
   }
 };
 #endif
