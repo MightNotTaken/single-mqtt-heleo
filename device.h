@@ -25,7 +25,6 @@ namespace Device {
   void updateConfiguration(std::function<void()> callback) {
     Serial_println("updating configuration");
     String config = Configuration::toJSON();
-    JSON::add(config, "mac", MAC::getMac());
     JSON::add(config, "type", "config");
     JSON::add(config, "installed_firmware", FIRMWARE_VERSION);
     JSON::prettify(config);
@@ -58,7 +57,7 @@ namespace Device {
     JSON::add(configuration, "mac", MAC::getMac());
     JSON::prettify(Device::stateString);
     Quectel::MQTT::publish(MAC::getMac() + "-dev", configuration, []() {
-      Serial_println("configuration updated successfully");
+      Serial_println("\nState published successfully");
     });
   }
 
