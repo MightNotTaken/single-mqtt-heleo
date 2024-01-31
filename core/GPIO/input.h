@@ -8,11 +8,11 @@ class InputGPIO {
   std::function<void()> stateLowCallback;
   std::function<void(bool)> stateChangeCallback;
   bool lastState;
+  uint32_t debounceDuration;
   public:
-    InputGPIO(uint8_t GPIO, uint8_t mode = INPUT_PULLUP): GPIO(GPIO) {
+    InputGPIO(uint8_t GPIO, uint8_t mode = INPUT_PULLUP, uint32_t debounce = 200): GPIO(GPIO), debounceDuration(debounce) {
       pinMode(GPIO, mode);
       this->lastState = digitalRead(GPIO);
-      this->GPIO = GPIO;
     }
 
     void onStateHigh(std::function<void()> callback) {
@@ -28,7 +28,13 @@ class InputGPIO {
     }
 
     void listen() {
+      static uint32_t debounce = 0;
+      if (millis() - debounce < this->debounceDuration) {
+        return;
+      }
+      debounce = 0;
       if (digitalRead(this->GPIO) != this->lastState) {
+        debounce = this->debounceDuration;
         this->lastState = digitalRead(this->GPIO);
         invoke(this->stateChangeCallback, this->lastState);
         switch(digitalRead(this->GPIO)) {
