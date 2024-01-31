@@ -55,7 +55,7 @@ namespace Device {
     JSON::add(configuration, "type", "manual_update");
     JSON::add(configuration, "mac", MAC::getMac());
     JSON::prettify(Device::stateString);
-    Quectel::MQTT::publish(MAC::getMac() + "-dev", Device::stateString);
+    Quectel::MQTT::publish(MAC::getMac() + "-dev", configuration);
   }
 
   void onData(String data) {
