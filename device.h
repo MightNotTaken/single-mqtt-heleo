@@ -17,7 +17,7 @@ namespace Device {
   Core::Core_T* core;
 
   std::vector<byte> relays;
-  
+
   void sendFirmwareRequest() {
     String command = JSON::JSON();
     JSON::add(command, "type", "firmware_request");
@@ -102,6 +102,7 @@ namespace Device {
     for (auto gpio: Configuration::Peripherals::GPIO::relays) {
       showX(gpio);
       Device::relays.push_back(gpio);
+      pinMode(gpio, OUTPUT);
     }
     if (Database::readFile("/state.json")) {
       Device::stateString = Database::payload();
