@@ -3,7 +3,7 @@
 #include <LiquidCrystal_I2C.h>
 #include "core/core.h"
 namespace Display {
-  LiquidCrystal_I2C lcd(0x27, 16, 2);
+  LiquidCrystal_I2C lcd(0x20, 16, 2);
   Core::Core_T* core;
   enum {
     LINE_0=0,
