@@ -57,7 +57,9 @@ namespace Device {
     JSON::add(configuration, "type", "manual_update");
     JSON::add(configuration, "mac", MAC::getMac());
     JSON::prettify(Device::stateString);
-    Quectel::MQTT::publish(MAC::getMac() + "-dev", configuration);
+    Quectel::MQTT::publish(MAC::getMac() + "-dev", configuration, []() {
+      Serial_println("configuration updated successfully");
+    });
   }
 
   void onData(String data) {
@@ -75,9 +77,7 @@ namespace Device {
         Device::updateStateString(String("d") + i, state);
       }
       Device::updateStateString("device", JSON::read(data, "device"));
-      Device::core->setTimeout([]() {
-        Device::publishStateString();
-      }, SECONDS(1));
+      Device::publishStateString();
     } else if (type == "restart") {
       ESP.restart();
     } else if (type == "update_firmware") {
