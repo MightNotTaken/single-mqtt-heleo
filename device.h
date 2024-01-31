@@ -105,16 +105,10 @@ namespace Device {
     }
     for (int i=0; i<Configuration::Peripherals::Touch::total; i++) {
       InputGPIO* touch = new InputGPIO(Configuration::Peripherals::Touch::gpios[i]);
-      touch->onStateHigh([i]() {
-        Serial_println("touch high");
-        return;
-        invoke(relayUpdateCallback, i, HIGH);
-        Device::publishStateString();
-      });
+      
       touch->onStateLow([i]() {
         Serial_println("touch low");
-        return;
-        invoke(relayUpdateCallback, i, LOW);
+        invoke(relayUpdateCallback, i, !JSON::read(Device::stateString, String("r") + i).toInt());
         Device::publishStateString();
       });
       Device::core->registerInputGPIO(touch);
