@@ -25,11 +25,13 @@ void Core::setupCore0() {
           Device::onRelayUpdate([](uint8_t index, uint8_t state) {
             if (index < Device::relays.size()) {
               digitalWrite(Device::relays[index], state);
+              Device::updateStateString(String("r") + index, state);
             }
           });
           Device::onFanUpdate([](uint8_t fan, uint8_t state) {
             showX(fan);
             showX(state);
+            Device::updateStateString(String("d") + fan, state);
           });
           Device::listen([]() {
             Serial_println("Device listening");

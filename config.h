@@ -22,6 +22,12 @@ namespace Configuration {
       int relays[] = {23};
       int dimmers[][2] = {};
     };
+
+    namespace Touch {
+      int total  = 1;
+      int gpios[] = {13};
+    };
+
   };
 
 

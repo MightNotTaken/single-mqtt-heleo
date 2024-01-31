@@ -74,12 +74,11 @@ namespace Device {
       for (int i=0; i<Configuration::Peripherals::relays; i++) {
         int state = JSON::read(data, String("r") + i).toInt();
         invoke(relayUpdateCallback, i, state);
-        Device::updateStateString(String("r") + i, state);
+        
       }
       for (int i=0; i<Configuration::Peripherals::dimmers; i++) {
         int state = JSON::read(data, String("d") + i).toInt();
         invoke(fanUpdateCallback, i, state);
-        Device::updateStateString(String("d") + i, state);
       }
       Device::updateStateString("device", JSON::read(data, "device"));
       Device::publishStateString();
@@ -103,6 +102,18 @@ namespace Device {
       showX(gpio);
       Device::relays.push_back(gpio);
       pinMode(gpio, OUTPUT);
+    }
+    for (int i=0; i<Configuration::Peripherals::Touch::total; i++) {
+      InputGPIO* touch = new InputGPIO(Configuration::Peripherals::Touch::gpios[i]);
+      touch->onStateHigh([i]() {
+        invoke(relayUpdateCallback, i, HIGH);
+        Device::publishStateString();
+      });
+      touch->onStateLow([i]() {
+        invoke(relayUpdateCallback, i, LOW);
+        Device::publishStateString();
+      });
+      Device::core->registerInputGPIO(touch);
     }
     if (Database::readFile("/state.json")) {
       Device::stateString = Database::payload();
