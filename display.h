@@ -37,7 +37,7 @@ namespace Display {
   void showSplash(std::function<void()> onInit = nullptr, uint32_t timeout = SECONDS(3)) {
     Display::set(Display::LINE_0, "Heleo");
     Display::set(Display::LINE_1, "Electronics");
-    Dispaly::core->setTimeout([onInit]() {
+    Display::core->setTimeout([onInit]() {
       invoke(onInit);
     }, timeout);
   }
