@@ -11,6 +11,7 @@ namespace Device {
   bool listening = false;
   std::function<void(uint8_t, uint8_t)> relayUpdateCallback;
   std::function<void(uint8_t, uint8_t)> fanUpdateCallback;
+  String stateString = JSON::JSON();
   void sendFirmwareRequest() {
     String command = JSON::JSON();
     JSON::add(command, "type", "firmware_request");
@@ -40,17 +41,39 @@ namespace Device {
     Device::fanUpdateCallback = callback;
   }
 
+  template<typename T>
+  void updateStateString(String key, T value, bool overwrite = false) {
+    if (overwrite) {
+      Device::stateString = JSON::JSON();
+    }
+    JSON::add(Device::stateString, key, String(value));
+  }
+
+  void publishStateString() {
+    Database::writeFile("/state.json", Device::stateString);
+    String configuration = Device::stateString;
+    JSON::add(configuration, "type", "manual_update");
+    JSON::add(configuration, "mac", MAC::getMac());
+    JSON::prettify(Device::stateString);
+    Quectel::MQTT::publish(MAC::getMac() + "-dev", Device::stateString);
+  }
+
   void onData(String data) {
     String type = JSON::read(data, "type");
     if (type == "update") {
+      Device::updateStateString("mac", MAC::getMac(), true);
       for (int i=0; i<Configuration::relays; i++) {
         int state = JSON::read(data, String("r") + i).toInt();
         invoke(relayUpdateCallback, i, state);
+        Device::updateStateString(String("r") + i, state);
       }
       for (int i=0; i<Configuration::dimmers; i++) {
         int state = JSON::read(data, String("d") + i).toInt();
         invoke(fanUpdateCallback, i, state);
+        Device::updateStateString(String("d") + i, state);
       }
+      Device::updateStateString("device", JSON::read(data, "device"));
+      Device::publishStateString();
     } else if (type == "restart") {
       ESP.restart();
     } else if (type == "update_firmware") {
