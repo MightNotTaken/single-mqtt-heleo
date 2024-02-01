@@ -1,36 +1,83 @@
 #ifndef DATA_PERIPHERAL_H__
 #define DATA_PERIPHERAL_H__
-#include  "core/core.h"
+#include "core/core.h"
+#include "core/database.h"
 #include <SoftwareSerial.h>
 #include <functional>
 #define RX_DP       26
 #define TX_DP       27
 namespace DataPeripheral {
+  struct Phase {
+    float v;
+    float i;
+    float E;
+    String name;
+    uint32_t lastCalculatedOn;
 
-  struct Data {
-    float v1;
-    float v2;
-    float v3;
-    float c1;
-    float c2;
-    float c3;
-    String data;
-    void show() {
-      showX(v1);
-      showX(v2);
-      showX(v3);
-      showX(c1);
-      showX(c2);
-      showX(c3);
+    void update(float v, float i) {
+      this->v = v;
+      this->i = i;
+      float deltaT = (millis() - lastCalculatedOn) / (1.0 * HOURS(1));
+      this->E += v * i * deltaT;
     }
+
+    String fileName() {
+      return this->name + ".txt";
+    }
+
+    
+
+    void show() {
+      Serial.printf("%cv: %f\n", this->name, this->v);
+      Serial.printf("%ci: %f\n", this->name, this->i);
+      Serial.printf("%fkWh\n", this->E);
+    }
+
+    Phase(String name) {
+      this->name = name;
+      this->lastCalculatedOn = millis();
+      if (!Database::hasFile(this->fileName())) {
+        Database::writeFile(this->fileName(), String(0)); 
+      }
+      if (Database::readFile(this->fileName())) {
+        this->E = Database::payload().toFloat();
+      }
+      Core::core0.setInterval([this]() {
+        Database::writeFile(this->fileName(), String(this->E));
+      }, SECONDS(10));
+    }
+  } R("R"), Y("Y"), B("B");
+
+  float totalEnergy() {
+    return R.E + Y.E + B.E;
+  }
+  struct Data {    
+    float Rv;
+    float Ri;
+    float Yv;
+    float Yi;
+    float Bv;
+    float Bi;
+    String data;
     void add(char ch) {
       if (this->data.length() > 100) {
         this->data = "";
       }
       this->data += ch;
     }
+    void show() {
+      showX(Rv);
+      showX(Ri);
+      showX(Yv);
+      showX(Yi);
+      showX(Bv);
+      showX(Bi);
+    }
     void parse() {
-      sscanf(this->data.c_str(), "%f %f %f %f %f %f", &v1, &v2, &v3, &c1, &c2, &c3);
+      sscanf(this->data.c_str(), "%f %f %f %f %f %f", &Rv, &Ri, &Yv, &Yi, &Bv, &Bi);
+      R.update(Rv, Ri);
+      Y.update(Yv, Yi);
+      B.update(Bv, Bi);
       this->data = "";
     }
   } parser;

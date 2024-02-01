@@ -10,7 +10,6 @@ void Core::setupCore0() {
     DataPeripheral::begin(&Core::core0);
     Device::begin(&Core::core0);
     Display::begin(&Core::core0);
-    
     DataPeripheral::onData([](DataPeripheral::Data data) {
       data.show();
     });
