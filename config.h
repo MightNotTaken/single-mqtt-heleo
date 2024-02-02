@@ -1,6 +1,8 @@
 #ifndef CONFIG_H__
 #define CONFIG_H__
-#define FIRMWARE_VERSION    "V_30_01_2024"
+#define FIRMWARE_VERSION    String("V_30_01_2024")
+#define BOARD_TYPE          String("FOUR_RELAY_NO_DIMMER")
+#include "core/mac.h"
 namespace Configuration {
   namespace MQTT {
     String baseURL = "heleo.app";
@@ -27,10 +29,11 @@ namespace Configuration {
       int total  = 1;
       int gpios[] = {13};
     };
-
   };
 
-
+  String getBoardSpecQuery(String target_version) {
+    return String("?boardType=") + BOARD_TYPE + "&version=" + target_version + "&mac=" + MAC::getMac();
+  }
 
   String toJSON() {
     String json = JSON::JSON();

@@ -13,6 +13,7 @@ namespace Device {
   bool listening = false;
   std::function<void(uint8_t, uint8_t)> relayUpdateCallback;
   std::function<void(uint8_t, uint8_t)> fanUpdateCallback;
+  std::function<void(String, String)> firmwareUpdateCallback;
   String stateString = JSON::JSON();
   Core::Core_T* core;
 
@@ -85,10 +86,24 @@ namespace Device {
     } else if (type == "restart") {
       ESP.restart();
     } else if (type == "update_firmware") {
-
+      String version = JSON::read(data, "firmware_version");
+      if (FIRMWARE_VERSION != version) {
+        String url = JSON::read(data, "updateURL");
+        if (url.length()) {
+          invoke(Device::firmwareUpdateCallback, url, version);
+        }
+      }            
     } else if (type == "force_update_firmware") {
-
+      String url = JSON::read(data, "updateURL");
+      String version = JSON::read(data, "firmware_version");
+      if (url.length()) {
+        invoke(Device::firmwareUpdateCallback, url, version);
+      }
     }
+  }
+
+  void onFirmwareUpdate(std::function<void(String, String)> callback) {
+    Device::firmwareUpdateCallback = callback;
   }
 
   void listen(std::function<void()> callback) {
@@ -105,7 +120,6 @@ namespace Device {
     }
     for (int i=0; i<Configuration::Peripherals::Touch::total; i++) {
       InputGPIO* touch = new InputGPIO(Configuration::Peripherals::Touch::gpios[i]);
-      
       touch->onStateLow([i]() {
         Serial_println("touch low");
         invoke(relayUpdateCallback, i, !JSON::read(Device::stateString, String("r") + i).toInt());
@@ -120,6 +134,9 @@ namespace Device {
         invoke(relayUpdateCallback, i, state);
       }
     }
+    core->setInterval([]() {
+      Device::sendFirmwareRequest();
+    }, MINUTES(10));
   }
 };
 
