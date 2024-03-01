@@ -243,6 +243,7 @@ namespace WIFI {
     if (looping) {
       return;
     }
+    looping = true;
     WIFI::registerRouteHandlers();
     WIFI::operationalCore->setInterval([]() {
       if ((WIFI::status == WIFI::CONNECTING || WIFI::status == WIFI::DISCONNECTED) && WiFi.status() == WL_CONNECTED) {

@@ -1,5 +1,5 @@
-#ifndef FORMATTER_H__
-#define FORMATTER_H__
+#ifndef UTILITY_H__
+#define UTILITY_H__
 #include <TimeLib.h>
 
 typedef uint32_t TimeReference;

@@ -7,6 +7,7 @@
 #define MAXIMUM_STRINGS       5
 #define RXD                   16
 #define TXD                   17
+#define IGNORE_ERROR          true
 namespace Quectel {
   typedef std::vector<String> SerialResponse_T;
   typedef std::function<void(SerialResponse_T)> SerialCallback_T;
@@ -44,6 +45,7 @@ namespace Quectel {
   std::function<void()> errorCallback;
   std::function<void()> rebootCallback;
   String readUntil = "OK";
+  bool ignoreError = false;
   bool rebooted = false;
   void sendCommand(String, String, Quectel::SerialCallback_T);
 
@@ -150,6 +152,13 @@ namespace Quectel {
     }
     Quectel::serialCallback = callback;
     Quectel::sendCommand(command, readUntil);
+  }
+
+
+
+  void sendCommand(String command, String readUntil, bool ignoreError, Quectel::SerialCallback_T callback) {
+    Quectel::ignoreError = ignoreError;
+    sendCommand(command, readUntil, callback);
   }
 
 
@@ -263,6 +272,19 @@ namespace Quectel {
           current = "";
           invoke(Quectel::serialCallback, responseList);
         }
+        
+        if (current.indexOf("ERROR") > -1) {
+          current = "";
+          if (Quectel::ignoreError) {
+            Serial.println("error ignored");
+            Quectel::errorCallback = nullptr;
+            Quectel::ignoreError = false;
+            invoke(Quectel::serialCallback, responseList);
+          }
+          invoke(Quectel::errorCallback);
+          Quectel::flush();
+          Quectel::errorCallback = nullptr;
+        }
         if (ch == '\n') {
           if (responseList.size() >= MAXIMUM_STRINGS) {
             responseList.erase(responseList.begin());
@@ -273,12 +295,6 @@ namespace Quectel {
           }
           responseList.push_back(current);
           
-          if (current.indexOf("ERROR") > -1) {
-            current = "";
-            invoke(Quectel::errorCallback);
-            Quectel::flush();
-            Quectel::errorCallback = nullptr;
-          }
           if (current.indexOf("+QMTRECV:") > -1) {
             MQTT::handleData(current);
           }

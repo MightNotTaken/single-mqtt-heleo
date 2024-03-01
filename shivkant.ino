@@ -23,7 +23,7 @@ void Core::setupCore0() {
     WIFI::onDisconnect([]() {
       Serial_println("Wifi disconnected");
     });
-    WIFI::Hotspot::configure("Heleo");
+    WIFI::Hotspot::configure("HN");
     WIFI::Hotspot::turnOn();
     WIFI::connect();
     
@@ -74,7 +74,7 @@ void Core::setupCore0() {
           });          
         });
         Quectel::MQTT::connect();
-      }, SECONDS(5)); 
+      }, SECONDS(5));
     });
     Quectel::begin(&core0, Configuration::Quectel::powerKey);
     Core::core0.setInterval([]() {
