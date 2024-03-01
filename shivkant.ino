@@ -73,7 +73,9 @@ void Core::setupCore0() {
             });
           });          
         });
-        Quectel::MQTT::connect();
+        Quectel::MQTT::connect([]() {
+          Quectel::MQTT::connect();
+        });
       }, SECONDS(5));
     });
     Quectel::begin(&core0, Configuration::Quectel::powerKey);
