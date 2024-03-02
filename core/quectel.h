@@ -146,6 +146,7 @@ namespace Quectel {
       Quectel::sendCommand("AT+CREG?", "+CREG: 1,1|+CREG: 1,5", [callback](SerialResponse_T resp) {
         Quectel::sendCommand("AT+CGREG=1", "+CGREG: 1", [callback](SerialResponse_T resp) {
           Quectel::sendCommand("AT+CGREG?", "+CGREG: 1,1|+CGREG: 1,5", [callback](SerialResponse_T resp) {
+            Quectel::serialCallback = nullptr;
             invoke(callback);
           });
         });
@@ -163,6 +164,7 @@ namespace Quectel {
     Serial.printf("Turning on internet, attempts left: %d\n", attempts);
     Quectel::sendCommand("AT+QIREGAPP=\"airtelgprs.com\",\"\",\"\"", "OK", [callback, onFailure](SerialResponse_T resp) {
       Quectel::sendCommand("AT+QIACT", "OK", [callback](SerialResponse_T resp) {
+        Quectel::serialCallback = nullptr;
         invoke(callback);
       }, onFailure);
     }, [onFailure, callback, &attempts]() {
