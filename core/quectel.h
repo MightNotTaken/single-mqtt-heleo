@@ -268,7 +268,15 @@ namespace Quectel {
     }
   };
 
-  
+  bool includeAnyPart(String host, String parts) {
+    int seperatorIndex = parts.indexOf('|');
+    if (seperatorIndex<0) {
+      return host.indexOf(parts) > -1;
+    }
+    String subPart = parts.substring(0, seperatorIndex);
+    parts = parts.substring(seperatorIndex+1, parts.length());
+    return includeAnyPart(host, parts);
+  }
   void loop() {
     static bool looping = false;
     if (looping) {
@@ -279,7 +287,7 @@ namespace Quectel {
       while (Serial2.available()) {
         char ch = Serial2.read();
         Serial.print(ch);
-        if (current.indexOf(Quectel::readUntil) > -1) {
+        if (includeAnyPart(current, Quectel::readUntil)) {
           current = "";
           invoke(Quectel::serialCallback, responseList);
         }
