@@ -66,6 +66,7 @@ namespace DataPeripheral {
       this->data += ch;
     }
     void show() {
+      return;
       showX(Rv);
       showX(Ri);
       showX(Yv);
