@@ -86,11 +86,24 @@ void Core::setupCore0() {
       //     Quectel::MQTT::connect();
       //   });
       // }, SECONDS(5));
-
+      Quectel::MQTT::configure(
+        Configuration::MQTT::baseURL,
+        Configuration::MQTT::port,
+        Configuration::MQTT::username,
+        Configuration::MQTT::password,
+        Configuration::MQTT::apn
+      );
+      
+      Quectel::MQTT::onError([]() {
+        Quectel::MQTT::connect();
+      });
       Quectel::registerNetwork([]() {
         Serial.println("Successfully registered");
         Quectel::turnOnInternet([]() {
           Serial.println("Internet turned on");
+          Quectel::MQTT::connect([]() {
+            Serial.println("MQTT Successfully connected");
+          });
         });
       });
     }); 
