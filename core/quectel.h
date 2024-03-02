@@ -82,7 +82,7 @@ namespace Quectel {
     delay(1000);
     digitalWrite(powerKey, LOW);
     delay(500);
-    Quectel::sendCommand("AT", "SMS Ready", [](SerialResponse_T response) {
+    Quectel::sendCommand("AT", "SMS Ready|OK", [](SerialResponse_T response) {
       Quectel::rebooted = true;
       Quectel::operationalCore->clearTimeout(Quectel::rebootTimeout);
       invoke(Quectel::rebootCallback);
@@ -111,7 +111,6 @@ namespace Quectel {
     }
     Quectel::flush();
     Quectel::readUntil = readUntil;
-    Serial.printf("command: %s\n", command.c_str());
     Serial2.print(command);
     Serial2.write('\r');
     Serial2.write('\n');
@@ -294,10 +293,8 @@ namespace Quectel {
         char ch = Serial2.read();
         Serial.print(ch);
         if (includeAnyPart(current, Quectel::readUntil)) {
-          Serial.printf("%s %s\n", current.c_str(), Quectel::readUntil.c_str());
           current = "";
           invoke(Quectel::serialCallback, responseList);
-          Quectel::serialCallback = nullptr;
         }
         
         if (current.indexOf("ERROR") > -1) {
@@ -307,7 +304,6 @@ namespace Quectel {
             Quectel::errorCallback = nullptr;
             Quectel::ignoreError = false;
             invoke(Quectel::serialCallback, responseList);
-            Quectel::serialCallback = nullptr;
             return;
           }
           invoke(Quectel::errorCallback);
