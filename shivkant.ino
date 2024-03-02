@@ -93,7 +93,7 @@ void Core::setupCore0() {
           Serial.println("Internet turned on");
         });
       });
-    });
+    }); 
     Quectel::begin(&core0, Configuration::Quectel::powerKey);
   });
 }
