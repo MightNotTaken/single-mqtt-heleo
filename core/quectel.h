@@ -274,6 +274,8 @@ namespace Quectel {
     if (seperatorIndex > -1) {
       subPart = parts.substring(0, seperatorIndex);
       parts = parts.substring(seperatorIndex+1, parts.length());
+    } else {
+      return host.indexOf(subPart) > -1;
     }
     if (host.indexOf(subPart) > -1) {
       return true;
@@ -293,6 +295,7 @@ namespace Quectel {
         if (includeAnyPart(current, Quectel::readUntil)) {
           current = "";
           invoke(Quectel::serialCallback, responseList);
+          Quectel::serialCallback = nullptr;
         }
         
         if (current.indexOf("ERROR") > -1) {
@@ -302,6 +305,7 @@ namespace Quectel {
             Quectel::errorCallback = nullptr;
             Quectel::ignoreError = false;
             invoke(Quectel::serialCallback, responseList);
+            Quectel::serialCallback = nullptr;
           }
           invoke(Quectel::errorCallback);
           Quectel::flush();
@@ -322,14 +326,14 @@ namespace Quectel {
           }
           if (current.indexOf("+QMTSTAT: 0,1") > -1) {
             invoke(MQTT::errorCallback);
+            Quectel::errorCallback = nullptr;
           }
           current = "";
         } else {
           if (ch != '\r') {
             current += ch;
           }
-        }
-        
+        }        
       }
     }, 100);
   }
