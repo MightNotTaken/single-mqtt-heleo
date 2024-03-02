@@ -38,54 +38,38 @@ void Core::setupCore0() {
     
     Quectel::onReboot([]() {
       Serial.println("rebooted");
-      // Core::core0.setTimeout([]() {
-      //   Serial_println("connecting to MQTT Broker");
-      //   Quectel::MQTT::configure(
-      //     Configuration::MQTT::baseURL,
-      //     Configuration::MQTT::port,
-      //     Configuration::MQTT::username,
-      //     Configuration::MQTT::password,
-      //     Configuration::MQTT::apn
-      //   );
-      //   Quectel::MQTT::onError([]() {
-      //     Quectel::MQTT::connect();
-      //   });
-      //   Quectel::MQTT::onConnect([]() {
-      //     Serial_println("MQTT connected succcessfully");
-      //     Device::onRelayUpdate([](uint8_t index, uint8_t state) {
-      //       if (index < Device::relays.size()) {
-      //         digitalWrite(Device::relays[index], state);
-      //         Device::updateStateString(String("r") + index, state);
-      //       }
-      //     });
-      //     Device::onFanUpdate([](uint8_t fan, uint8_t state) {
-      //       showX(fan);
-      //       showX(state);
-      //       Device::updateStateString(String("d") + fan, state);
-      //     });
-      //     Device::onFirmwareUpdate([](String url, String version) {
-      //       OTA::begin(url + Configuration::getBoardSpecQuery(version));
-      //       if (OTA::performUpdate()) {
-      //         ESP.restart();
-      //       } else {
-      //         WiFi.disconnect();
-      //       }            
-      //     });
-      //     Device::listen([]() {
-      //       Serial_println("Device listening");
-      //       Device::reRegister([]() {
-      //         Serial_println("device registered");
-      //         Device::updateConfiguration([]() {
-      //           Serial_println("configuration updated succcessfully");
-      //           Device::sendFirmwareRequest();
-      //         });
-      //       });
-      //     });          
-      //   });
-      //   Quectel::MQTT::connect([]() {
-      //     Quectel::MQTT::connect();
-      //   });
-      // }, SECONDS(5));
+      Quectel::MQTT::onConnect([]() {
+        Serial_println("MQTT connected succcessfully");
+        Device::onRelayUpdate([](uint8_t index, uint8_t state) {
+          if (index < Device::relays.size()) {
+            digitalWrite(Device::relays[index], state);
+            Device::updateStateString(String("r") + index, state);
+          }
+        });
+        Device::onFanUpdate([](uint8_t fan, uint8_t state) {
+          showX(fan);
+          showX(state);
+          Device::updateStateString(String("d") + fan, state);
+        });
+        Device::onFirmwareUpdate([](String url, String version) {
+          OTA::begin(url + Configuration::getBoardSpecQuery(version));
+          if (OTA::performUpdate()) {
+            ESP.restart();
+          } else {
+            WiFi.disconnect();
+          }            
+        });
+        Device::listen([]() {
+          Serial_println("Device listening");
+          Device::reRegister([]() {
+            Serial_println("device registered");
+            Device::updateConfiguration([]() {
+              Serial_println("configuration updated succcessfully");
+              Device::sendFirmwareRequest();
+            });
+          });
+        });          
+      });
       Quectel::MQTT::configure(
         Configuration::MQTT::baseURL,
         Configuration::MQTT::port,
