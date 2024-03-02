@@ -95,35 +95,6 @@ namespace Quectel {
     }, SECONDS(10));
   }
 
-  void httpGET(String url) {
-    Quectel::sendCommand("AT", "OK", [url](SerialResponse_T resp) {
-      Quectel::sendCommand("AT+CPIN?", "OK", [url](SerialResponse_T resp) {
-        Quectel::sendCommand("AT+CREG?", "OK", [url](SerialResponse_T resp) {
-          Quectel::sendCommand("AT+CGREG?", "OK", [url](SerialResponse_T resp) {
-            Quectel::sendCommand("AT+QIFGCNT=0", "OK", [url](SerialResponse_T resp) {
-              Quectel::sendCommand(String("AT+QICSGP=1,\"") + "airtelgprs.com" + '"' , "OK", [url](SerialResponse_T resp) {
-                Quectel::sendCommand("AT+QIREGAPP", "OK", [url](SerialResponse_T resp) {
-                  Quectel::sendCommand("AT+QIACT", "OK", [url](SerialResponse_T resp) {
-                    Quectel::sendCommand(String("AT+QHTTPURL=") + String(url.length()) + ',' + 30, "CONNECT", [url](SerialResponse_T resp) {
-                      Quectel::sendCommand(url, "OK", [url](SerialResponse_T resp) {
-                        Quectel::sendCommand("AT+QHTTPGET=60", "OK", [](SerialResponse_T resp) {
-                          Quectel::sendCommand("AT+QHTTPREAD=30", "CONNECT", [](SerialResponse_T resp) {
-                            Quectel::critical = true;
-                            Serial.println("done");
-                          });
-                        });
-                      });
-                    });
-                  });
-                });
-              });
-            });
-          });
-        });
-      });
-    });
-  }
-
   void onReboot(std::function<void()> callback) {
     Quectel::rebootCallback = callback;
   }
@@ -154,6 +125,10 @@ namespace Quectel {
     Quectel::sendCommand(command, readUntil);
   }
 
+  void sendCommand(String command, String readUntil, Quectel::SerialCallback_T onSuccess, std::function<void()> onError) {
+    Quectel::errorCallback = onError;
+    sendCommand(command, readUntil, onSuccess);
+  }
 
 
   void sendCommand(String command, String readUntil, bool ignoreError, Quectel::SerialCallback_T callback) {
@@ -161,6 +136,42 @@ namespace Quectel {
     sendCommand(command, readUntil, callback);
   }
 
+
+  void registerNetwork(std::function<void()> callback, std::function<void()> onError = []() {
+    Serial.println("Error in registering network");
+  }) {
+    Serial.println("Registering network");
+    Quectel::errorCallback = onError;
+    Quectel::sendCommand("AT+CREG=1", "OK", [callback](SerialResponse_T resp) {
+      Quectel::sendCommand("AT+CREG?", "+CREG: 1,1|+CREG: 1,5", [callback](SerialResponse_T resp) {
+        Quectel::sendCommand("AT+CGREG=1", "OK", [callback](SerialResponse_T resp) {
+          Quectel::sendCommand("AT+CGREG?", "+CGREG: 1,1|+CGREG: 1,5", [callback](SerialResponse_T resp) {
+            invoke(callback);
+          });
+        });
+      });
+    });
+  }
+
+  void turnOnInternet(std::function<void()> callback, std::function<void()> onFailure = []() {
+    Serial.println("Internet activation failed");
+  }, int attempts = 3) {
+    if (!attempts) {
+      invoke(onFailure);
+      return;
+    }
+    Serial.printf("Turning on internet, attempts left: %d\n", attempts);
+    Quectel::sendCommand("AT+QIREGAPP=\"airtelgprs.com\",\"\",\"\"", "OK", [callback, onFailure](SerialResponse_T resp) {
+      Quectel::sendCommand("AT+QIACT", "OK", [callback](SerialResponse_T resp) {
+        invoke(callback);
+      }, onFailure);
+    }, [onFailure, callback, &attempts]() {
+      Quectel::sendCommand("AT+QIDEACT", "OK", [callback, onFailure, &attempts](SerialResponse_T resp) {
+        attempts --;
+        invoke(Quectel::turnOnInternet, callback, onFailure, attempts);
+      });
+    });
+  }
 
   
   namespace MQTT {
