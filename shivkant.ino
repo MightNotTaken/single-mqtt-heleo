@@ -39,7 +39,7 @@ void Core::setupCore0() {
     Quectel::onReboot([]() {
       Serial.println("rebooted");
       Quectel::MQTT::onConnect([]() {
-        Serial_println("MQTT connected succcessfully");
+        Serial_println("Registering mqtt events");
         Device::onRelayUpdate([](uint8_t index, uint8_t state) {
           if (index < Device::relays.size()) {
             digitalWrite(Device::relays[index], state);
@@ -68,8 +68,9 @@ void Core::setupCore0() {
               Device::sendFirmwareRequest();
             });
           });
-        });          
+        });
       });
+
       Quectel::MQTT::configure(
         Configuration::MQTT::baseURL,
         Configuration::MQTT::port,
@@ -81,6 +82,7 @@ void Core::setupCore0() {
       Quectel::MQTT::onError([]() {
         Quectel::MQTT::connect();
       });
+
       Quectel::registerNetwork([]() {
         Serial.println("Successfully registered");
         Quectel::turnOnInternet([]() {
