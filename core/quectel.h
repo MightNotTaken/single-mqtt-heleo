@@ -142,9 +142,9 @@ namespace Quectel {
   }) {
     Serial.println("Registering network");
     Quectel::errorCallback = onError;
-    Quectel::sendCommand("AT+CREG=1", "OK", [callback](SerialResponse_T resp) {
+    Quectel::sendCommand("AT+CREG=1", "+CREG: 1", [callback](SerialResponse_T resp) {
       Quectel::sendCommand("AT+CREG?", "+CREG: 1,1|+CREG: 1,5", [callback](SerialResponse_T resp) {
-        Quectel::sendCommand("AT+CGREG=1", "OK", [callback](SerialResponse_T resp) {
+        Quectel::sendCommand("AT+CGREG=1", "+CGREG: 1", [callback](SerialResponse_T resp) {
           Quectel::sendCommand("AT+CGREG?", "+CGREG: 1,1|+CGREG: 1,5", [callback](SerialResponse_T resp) {
             invoke(callback);
           });
