@@ -109,7 +109,7 @@ namespace Quectel {
                         Quectel::sendCommand("AT+QHTTPGET=60", "OK", [](SerialResponse_T resp) {
                           Quectel::sendCommand("AT+QHTTPREAD=30", "CONNECT", [](SerialResponse_T resp) {
                             Quectel::critical = true;
-                            Serial.println("dopne");
+                            Serial.println("done");
                           });
                         });
                       });

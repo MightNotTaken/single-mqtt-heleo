@@ -15,6 +15,15 @@ void Core::setupCore0() {
     DataPeripheral::onData([](DataPeripheral::Data data) {
       data.show();
     });
+
+    Core::core0.setInterval([]() {
+      if (Serial.available()) {
+        String command = Serial.readString();
+        command.trim();
+        command += "\r\n";
+        Quectel::sendCommand(command);
+      }
+    }, 100);
     
     WIFI::configure(&Core::core0);
     WIFI::onConnect([]() {
