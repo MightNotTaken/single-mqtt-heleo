@@ -294,6 +294,7 @@ namespace Quectel {
         Serial.print(ch);
         if (includeAnyPart(current, Quectel::readUntil)) {
           current = "";
+          Serial.println();
           invoke(Quectel::serialCallback, responseList);
         }
         
