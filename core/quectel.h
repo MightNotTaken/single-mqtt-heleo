@@ -78,10 +78,6 @@ namespace Quectel {
 
   void reboot() {
     Quectel::rebooted = false;
-    digitalWrite(powerKey, HIGH);
-    delay(1000);
-    digitalWrite(powerKey, LOW);
-    delay(500);
     Quectel::sendCommand("AT", "SMS Ready|OK", [](SerialResponse_T response) {
       Quectel::rebooted = true;
       Quectel::operationalCore->clearTimeout(Quectel::rebootTimeout);
@@ -91,6 +87,11 @@ namespace Quectel {
       if (Quectel::rebooted) {
         return;
       }
+      
+      digitalWrite(powerKey, HIGH);
+      delay(1000);
+      digitalWrite(powerKey, LOW);
+      delay(500);
       Quectel::reboot();
     }, SECONDS(10));
   }
