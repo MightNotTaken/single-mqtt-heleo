@@ -82,7 +82,7 @@ namespace Quectel {
     delay(1000);
     digitalWrite(powerKey, LOW);
     delay(500);
-    Quectel::sendCommand("AT", "Call Ready", [](SerialResponse_T response) {
+    Quectel::sendCommand("AT", "SMS Ready", [](SerialResponse_T response) {
       Quectel::rebooted = true;
       Quectel::operationalCore->clearTimeout(Quectel::rebootTimeout);
       invoke(Quectel::rebootCallback);
@@ -269,12 +269,15 @@ namespace Quectel {
   };
 
   bool includeAnyPart(String host, String parts) {
+    String subPart = parts;
     int seperatorIndex = parts.indexOf('|');
-    if (seperatorIndex<0) {
-      return host.indexOf(parts) > -1;
+    if (seperatorIndex > -1) {
+      subPart = parts.substring(0, seperatorIndex);
+      parts = parts.substring(seperatorIndex+1, parts.length());
     }
-    String subPart = parts.substring(0, seperatorIndex);
-    parts = parts.substring(seperatorIndex+1, parts.length());
+    if (host.indexOf(subPart) > -1) {
+      return true;
+    }
     return includeAnyPart(host, parts);
   }
   void loop() {
